@@ -1,1 +1,1 @@
-# dmi-intergrated-api
+# dmi-integrated-api
