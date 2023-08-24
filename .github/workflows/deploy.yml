@@ -16,4 +16,4 @@ jobs:
         key: ${{ secrets.PRIVATE_KEY }}
         port: ${{ secrets.PORT }}
         script: |
-          echo "connected"
+          echo "connected."
