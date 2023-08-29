@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import MainController from '../../controllers/mortality_ncov/main.controller';
-import * as RoutesData from '../../data/mortality_ncov/routes.json';
+import MainController from '../../controllers/cholera/main.controller';
+import * as RoutesData from '../../data/cholera/routes.json';
 
 class MainRoutes {
     router = Router();
@@ -12,8 +12,7 @@ class MainRoutes {
 
     intializeRoutes() {
         RoutesData.routes.forEach(routeInstance => {
-            // this.router.get(routeInstance.url, this.controller.getData);
-            this.router.post(routeInstance.url, this.controller.postData);
+            this.router.get(routeInstance.url, this.controller.getData);
         });
     }
 }
