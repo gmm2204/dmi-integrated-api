@@ -16,6 +16,7 @@ jobs:
         key: ${{ secrets.PRIVATE_KEY }}
         port: ${{ secrets.PORT }}
         script: |
+          sudo cp -rf  /var/lib/API/dmi-integrated-api/* /tmp/dmi-integrated-dashboards-api-backup/
           cd /var/lib/github_workflows/dmi-integrated-api
           sudo git switch main
           sudo rm -rf build
@@ -25,7 +26,6 @@ jobs:
           sudo cp -rf /var/lib/API/config/* src/config/
           sudo npm install
           sudo npm run build
-          sudo cp -rf  /var/lib/API/dmi-integrated-api/* /tmp/dmi-integrated-dashboards-api-backup/
           sudo cp -rf . /var/lib/API/dmi-integrated-api/
           sudo pm2 reload all --update-env
           echo "Integrated API is upto date"
