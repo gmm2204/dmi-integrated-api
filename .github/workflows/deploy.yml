@@ -29,4 +29,4 @@ jobs:
           sudo cp -rf /var/lib/API/dmi-integrated-api/* /tmp/dmi-integrated-dashboards-api-backup/
           sudo cp -rf /var/lib/github_workflows/dmi-integrated-api/* .
           sudo pm2 reload integrated-dashboards-api
-          echo "Integrated API is upto date!"
+          echo "Integrated API is upto date"
