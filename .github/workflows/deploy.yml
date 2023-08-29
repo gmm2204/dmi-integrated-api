@@ -25,8 +25,7 @@ jobs:
           sudo cp -rf /var/lib/API/config/* src/config/
           sudo npm install
           sudo npm run build
-          cd /var/lib/API/dmi-integrated-api
-          sudo cp -rf /var/lib/API/dmi-integrated-api/* /tmp/dmi-integrated-dashboards-api-backup/
-          sudo cp -rf /var/lib/github_workflows/dmi-integrated-api/* .
-          sudo pm2 reload integrated-dashboards-api
+          sudo cp -rf  /var/lib/API/dmi-integrated-api/* /tmp/dmi-integrated-dashboards-api-backup/
+          sudo cp -rf . /var/lib/API/dmi-integrated-api/
+          sudo pm2 reload all --update-env
           echo "Integrated API is upto date"
