@@ -9,6 +9,7 @@ interface IMainRepository {
 
 class MainRepository implements IMainRepository {
     db = new Database(config.DB_CHOLERA);
+
     private retrievedData: any;
 
     async readData(url: string): Promise<any[]> {
