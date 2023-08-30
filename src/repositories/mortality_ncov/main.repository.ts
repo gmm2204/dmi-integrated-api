@@ -51,7 +51,7 @@ class MainRepository implements IMainRepository {
                 route_filter_query += ' AND '
             }
 
-            route_filter_query += ` p.Facility LIKE '` + filterInstance.filter_facility + `' `;
+            route_filter_query += ` p.Facility = '` + filterInstance.filter_facility + `' `;
         }
 
         if ((filterInstance.filter_date_range_start != "-1") && (filterInstance.filter_date_range_end != "-1")) {
