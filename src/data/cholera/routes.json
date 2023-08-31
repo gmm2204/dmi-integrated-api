@@ -1,0 +1,14 @@
+{
+    "routes": [
+        {
+            "title": "Cholera cases by gender",
+            "url": "/overview/casesByGender",
+            "query": "SELECT COUNT(ID_NO) as CasesNumber, SEX as Gender FROM [dbo].[Choleralinelist15082023] WHERE SEX IN ('Male','Female') GROUP BY SEX"
+        },
+        {
+            "title": "Cholera cases over time",
+            "url": "/overview/casesOverTime",
+            "query": "SELECT COUNT(ID_NO) CasesNumber, EPI_WEEK as EpiWeek FROM [dbo].[Choleralinelist15082023] WHERE EPI_WEEK is not null Group by EPI_WEEK Order by EPI_WEEK"
+        }
+    ]
+}
