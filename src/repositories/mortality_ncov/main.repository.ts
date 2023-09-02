@@ -51,7 +51,8 @@ class MainRepository implements IMainRepository {
                 route_filter_query += ' AND '
             }
 
-            route_filter_query += ` p.Facility = '` + filterInstance.filter_facility + `' `;
+            // A.FacilityID
+            route_filter_query += ` A.FacilityID = '` + filterInstance.filter_facility + `' `;
         }
 
         if ((filterInstance.filter_date_range_start != "-1") && (filterInstance.filter_date_range_end != "-1")) {
@@ -59,7 +60,8 @@ class MainRepository implements IMainRepository {
                 route_filter_query += ' AND '
             }
 
-            route_filter_query += ` (d.Date BETWEEN '` + filterInstance.filter_date_range_start + `' AND '` + filterInstance.filter_date_range_end + `')`;
+            // D.Date
+            route_filter_query += ` (D.Date BETWEEN '` + filterInstance.filter_date_range_start + `' AND '` + filterInstance.filter_date_range_end + `')`;
         }
 
         if (filterInstance.filter_year != "-1") {
@@ -67,7 +69,8 @@ class MainRepository implements IMainRepository {
                 route_filter_query += ' AND '
             }
 
-            route_filter_query += ` d.Year = '` + filterInstance.filter_year + `' `;
+            // D.Year
+            route_filter_query += ` D.Year = '` + filterInstance.filter_year + `' `;
         }
 
         if ((filterInstance.filter_epi_week_start != "-1") && (filterInstance.filter_epi_week_end != "-1")) {
@@ -75,11 +78,12 @@ class MainRepository implements IMainRepository {
                 route_filter_query += ' AND '
             }
 
-            route_filter_query += ` (p.EpiWeek BETWEEN ` + filterInstance.filter_epi_week_start + ` AND ` + filterInstance.filter_epi_week_end + `) `;
+            // A.EpiWeek
+            route_filter_query += ` (A.EpiWeek BETWEEN ` + filterInstance.filter_epi_week_start + ` AND ` + filterInstance.filter_epi_week_end + `) `;
         }
 
         if (route_filter_query != ``) {
-            route_filter_query = ` WHERE (` + route_filter_query + `);`;
+            route_filter_query = ` WHERE (` + route_filter_query + `) `;
         }
         //#endregion
 
@@ -90,8 +94,9 @@ class MainRepository implements IMainRepository {
                 route_query = seekRoute.query;
 
                 if (seekRoute.filter) {
-                    route_query += route_filter_query
+                    // route_query += route_filter_query    
 
+                    route_query = route_query.replace("{{WHERE}}", route_filter_query);
                     console.log("---------------------------------------");
                     console.log(route_query);
                     console.log("---------------------------------------");
