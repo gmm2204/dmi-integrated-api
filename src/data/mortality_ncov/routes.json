@@ -31,10 +31,10 @@
             "filter": true
         },
         {
-            "title": "Find overall positivity by facility [Faulty, pending updated query]",
+            "title": "Find overall positivity by facility",
             "url": "/overview/findOverallPositivityByFacility",
-            "query": "SELECT count(SampleTested) EnrolledNumber, sum(Covid19Positive) Covid19Positive, (SELECT FacilityName FRoM [dbo].[DimFacility] where FacilityId = Facility) Facility FROM [dbo].[FactMortality] p WHERE SampleTested = 1 and SampleTested is not null and barcode is not null Group by Facility",
-            "filter": false
+            "query": "SELECT SUM(EnrolledNumber)EnrolledNumber, SUM(Covid19PositiveNumber)PositiveNumber, Facility FROM ( SELECT CASE WHEN Enrolled = 1 and SampleTested = 1 and barcode is not null then 1 else 0 end EnrolledNumber, CASE WHEN Covid19Positive = 1 and SampleTested = 1 and barcode is not null then 1 else 0 end Covid19PositiveNumber, (SELECT FacilityName FRoM [dbo].[DimFacility] WHERE FacilityId = Facility) Facility, P.Facility as FacilityID, P.ReviewDate, P.EpiWeek FROM [dbo].[FactMortality] p )A INNER JOIN DimDate D On A.ReviewDate = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId {{WHERE}} Group by Facility",
+            "filter": true
         },
         {
             "title": "Find over time",
@@ -45,20 +45,20 @@
         {
             "title": "Find cascade",
             "url": "/screening/findCascade",
-            "query": "SELECT TotalScreened, Eligible, Enrolled FROM (SELECT (SELECT COUNT(Screened) FROM [dbo].[FactMortality] p WHERE Screened = 1 ) AS TotalScreened , (SELECT Count(Eligible) Eligible FROM [dbo].[FactMortality] p WHERE Eligible = 1) as Eligible, (SELECT sum( SampleTested) FROM [dbo].[FactMortality] WHERE SampleTested = 1 and SampleTested is not null and barcode is not null ) AS Enrolled, (SELECT sum( SampleTested) FROM [dbo].[FactMortality] WHERE SampleTested = 1 and SampleTested is not null and barcode is not null ) AS Tested , (SELECT sum(Covid19Positive) Positive FROM [dbo].[FactMortality] p WHERE SampleTested = 1 and SampleTested is not null and barcode is not null ) AS Positive) A",
-            "filter": false
+            "query": "SELECT SUM(ScreenedNumber)ScreenedNumber,SUM(EligibleNumber)EligibleNumber,SUM(EnrolledNumber)EnrolledNumber FROM ( SELECT CASE WHEN Screened = 1 then 1 else 0 end ScreenedNumber, CASE WHEN Eligible = 1 then 1 else 0 end EligibleNumber, CASE WHEN Enrolled = 1 and SampleTested is not null and barcode is not null then 1 else 0 end EnrolledNumber, CASE WHEN SampleTested = 1 and barcode is not null then 1 else 0 end TestedNumber, CASE WHEN Covid19Positive = 1 and barcode is not null then 1 else 0 end PositiveNumber, P.Facility as FacilityID, P.ReviewDate, P.EpiWeek FROM [dbo].[FactMortality] p) A INNER JOIN DimDate D On A.ReviewDate = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId {{WHERE}};",
+            "filter": true
         },
         {
             "title": "Find by facility",
             "url": "/screening/findScreeningByFacility",
-            "query": "SELECT sum(Screened) Screened, COUNT(SampleTested) Enrolled, SUM(Covid19Positive) Covid19Positive, (SELECT FacilityName FRoM [dbo].[DimFacility] where FacilityId = Facility) Facility FROM [dbo].[FactMortality] p WHERE SampleTested = 1 and SampleTested is not null and barcode is not null Group by Facility",
-            "filter": false
+            "query": "SELECT SUM(ScreenedNumber)ScreenedNumber,SUM(EnrolledNumber)EnrolledNumber,SUM(Covid19PositiveNumber)Covid19PositiveNumber, Facility FROM ( SELECT CASE WHEN Screened = 1 then 1 else 0 end ScreenedNumber, CASE WHEN Enrolled = 1 and barcode is not null then 1 else 0 end EnrolledNumber, CASE WHEN Covid19Positive = 1 and barcode is not null then 1 else 0 end Covid19PositiveNumber, (SELECT FacilityName FRoM [dbo].[DimFacility] where FacilityId = Facility) Facility, P.Facility as FacilityID, P.ReviewDate, P.EpiWeek FROM [dbo].[FactMortality] p) A INNER JOIN DimDate D On A.ReviewDate = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId {{WHERE}} GROUP BY Facility",
+            "filter": true
         },
         {
             "title": "Find over time",
             "url": "/screening/findScreeningOvertime",
-            "query": "SELECT sum(Screened) Screened, EpiWeek, (SELECT [Month] FROM [dbo].[DimEpiWeek] where WeekKey = P.EpiWeek )[Month], (SELECT [Year] FROM [dbo].[DimEpiWeek] where WeekKey = P.EpiWeek ) [Year] FROM [dbo].[FactMortality] p WHERE SampleTested = 1 or Enrolled = 1 GROUP BY EpiWeek",
-            "filter": false
+            "query": "SELECT SUM(ScreenedNumber) ScreenedNumber,EpiWeek, Month, Year FROM ( SELECT CASE WHEN Screened = 1 then 1 else 0 end ScreenedNumber, P.Facility as FacilityID, P.ReviewDate, P.EpiWeek FROM [dbo].[FactMortality] p )A INNER JOIN DimDate D On A.ReviewDate = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId {{WHERE}} GROUP BY EpiWeek, Month, Year;",
+            "filter": true
         },
         {
             "title": "Find by gender",
@@ -81,8 +81,8 @@
         {
             "title": "Find by over time",
             "url": "/enrolment/findOverTime",
-            "query": "SELECT sum(Eligible) ElligibleNumber, sum(enrolled) EnrolledNumber, EpiWeek, (SELECT [Month] FROM [dbo].[DimEpiWeek] where WeekKey = P.EpiWeek )[Month], (SELECT [Year] FROM [dbo].[DimEpiWeek] where WeekKey = P.EpiWeek ) [Year] FROM [dbo].[FactMortality] p WHERE eligible = 1 or Enrolled = 1 GROUP BY EpiWeek",
-            "filter": false
+            "query": "SELECT SUM(EligibleNumber)EligibleNumber, SUM(EnrolledNumber)EnrolledNumber, EpiWeek,[Month],[Year] FROM ( SELECT CASE WHEN Eligible = 1 then 1 else 0 end EligibleNumber, CASE WHEN enrolled = 1 then 1 else 0 end EnrolledNumber, P.Facility as FacilityID, P.ReviewDate, P.EpiWeek FROM [dbo].[FactMortality] p ) A INNER JOIN DimDate D On A.ReviewDate = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId {{WHERE}} GROUP BY EpiWeek, Month, Year;",
+            "filter": true
         },
         {
             "title": "Find by status",
@@ -93,20 +93,20 @@
         {
             "title": "Find by health facility",
             "url": "/results/findByFacility",
-            "query": "SELECT COUNT(SampleTested) SampleTested , SUM(Covid19Positive) Covid19Positive, (COUNT(SampleTested) - SUM(Covid19Positive)) Covid19Negative, (SELECT FacilityName FRoM [dbo].[DimFacility] where FacilityId = Facility) Facility FROM [dbo].[FactMortality] p WHERE SampleTested = 1 and SampleTested is not null and barcode is not null Group by Facility",
-            "filter": false
+            "query": "SELECT SUM(SampleTestedNumber)SampleTestedNumber, SUM(Covid19PositiveNumber)Covid19PositiveNumber, (SUM(SampleTestedNumber) - SUM(Covid19PositiveNumber)) Covid19NegativeNumber, Facility FROM ( SELECT CASE WHEN SampleTested = 1 and SampleTested is not null and barcode is not null then 1 else 0 end SampleTestedNumber, CASE WHEN Covid19Positive = 1 and Enrolled = 1 then 1 else 0 end Covid19PositiveNumber, (SELECT FacilityName FRoM [dbo].[DimFacility] where FacilityId = Facility) Facility, P.Facility as FacilityID, P.ReviewDate, P.EpiWeek FROM [dbo].[FactMortality] p ) A INNER JOIN DimDate D On A.ReviewDate = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId {{WHERE}} GROUP BY Facility;",
+            "filter": true
         },
         {
             "title": "Find by age group and gender",
             "url": "/results/findByAgeGender",
-            "query": "SELECT sum(Covid19Positive) Covid19Positive, (SELECT AgeGroup FRoM [dbo].[DimAgeGroup] where AgeGroupId = p.AgeGroup) AgeGroup, (SELECT SexValue FRoM [dbo].[DimSex] where SexId = p.Sex) Gender FROM [dbo].[FactMortality] p WHERE SampleTested = 1 and SampleTested is not null and barcode is not null Group by AgeGroup, sex",
-            "filter": false
+            "query": "SELECT SUM(Covid19PositiveNumber)Covid19PositiveNumber, AgeGroup, Gender FROM ( SELECT CASE WHEN Covid19Positive = 1 and Enrolled = 1 then 1 else 0 end Covid19PositiveNumber, (SELECT AgeGroup FRoM [dbo].[DimAgeGroup] where AgeGroupId = p.AgeGroup ) AgeGroup, (SELECT SexValue FRoM [dbo].[DimSex] where SexId = p.Sex) Gender, P.Facility as FacilityID, P.ReviewDate, P.EpiWeek FROM [dbo].[FactMortality] p WHERE AgeGroup is not null ) A INNER JOIN DimDate D On A.ReviewDate = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId {{WHERE}} GROUP BY AgeGroup,Gender;",
+            "filter": true
         },
         {
             "title": "Find positivity over time",
             "url": "/results/findByPositivityOverTime",
-            "query": "SELECT count(SampleTested) SampleTested, sum(Covid19Positive) Covid19Positive, EpiWeek, (select [Month] from [dbo].[DimEpiWeek] where WeekKey = P.EpiWeek ) [Month], (select [Year] from [dbo].[DimEpiWeek] where WeekKey = P.EpiWeek ) [Year] FROM [dbo].[FactMortality] p WHERE SampleTested =1 and SampleTested is not null and barcode is not null Group by EpiWeek;",
-            "filter": false
+            "query": "SELECT SUM(SampleTestedNumber)SampleTestedNumber, SUM(Covid19PositiveNumber)Covid19PositiveNumber, EpiWeek,[Month],[Year] FROM ( SELECT CASE WHEN SampleTested = 1 and SampleTested is not null and barcode is not null then 1 else 0 end SampleTestedNumber, CASE WHEN Covid19Positive = 1 and Enrolled = 1 then 1 else 0 end Covid19PositiveNumber, P.Facility as FacilityID, P.ReviewDate, P.EpiWeek FROM [dbo].[FactMortality] p ) A INNER JOIN DimDate D On A.ReviewDate = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId {{WHERE}} GROUP BY EpiWeek, Month, Year;",
+            "filter": true
         }
     ]
 }
