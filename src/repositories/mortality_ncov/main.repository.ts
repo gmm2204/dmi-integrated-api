@@ -50,7 +50,7 @@ class MainRepository implements IMainRepository {
             if (route_filter_query != ``) {
                 route_filter_query += ' AND '
             }
-
+          
             // A.FacilityID
             route_filter_query += ` A.FacilityID = '` + filterInstance.filter_facility + `' `;
         }
