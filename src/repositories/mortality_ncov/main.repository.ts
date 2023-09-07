@@ -37,7 +37,7 @@ class MainRepository implements IMainRepository {
         return this.retrievedData;
     }
 
-    async acquirePostData(req: Request): Promise<any[]> {
+    async readPostData(req: Request): Promise<any[]> {
         let url = req.url;
         let targetRoute: {} = {};
         let route_query: string = ``;
@@ -50,7 +50,7 @@ class MainRepository implements IMainRepository {
             if (route_filter_query != ``) {
                 route_filter_query += ' AND '
             }
-          
+
             // A.FacilityID
             route_filter_query += ` A.FacilityID = '` + filterInstance.filter_facility + `' `;
         }
@@ -94,12 +94,7 @@ class MainRepository implements IMainRepository {
                 route_query = seekRoute.query;
 
                 if (seekRoute.filter) {
-                    // route_query += route_filter_query    
-
                     route_query = route_query.replace("{{WHERE}}", route_filter_query);
-                    console.log("---------------------------------------");
-                    console.log(route_query);
-                    console.log("---------------------------------------");
                 }
             }
         });

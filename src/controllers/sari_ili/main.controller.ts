@@ -18,7 +18,7 @@ export default class MainController {
     async postData(req: Request, res: Response) {
         try {
             let dataInstance: any;
-            dataInstance = await mainRepository.acquirePostData(req);
+            dataInstance = await mainRepository.readPostData(req);
             res.status(200).send(dataInstance);
         }
         catch (err) {
