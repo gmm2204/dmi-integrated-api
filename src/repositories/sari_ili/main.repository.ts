@@ -37,7 +37,7 @@ class MainRepository implements IMainRepository {
         return this.retrievedData;
     }
 
-    async acquirePostData(req: Request): Promise<any[]> {
+    async readPostData(req: Request): Promise<any[]> {
         let url = req.url;
         let targetRoute: {} = {};
         let route_query: string = ``;
