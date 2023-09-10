@@ -1,86 +1,106 @@
 {
     "routes": [
         {
-            "title": "Acquire composite SARI/ILI Facilities",
-            "url": "/acquireCompositeFacilities",
-            "file": "acquireCompositeFacilities.sql"
-        },
-        {
             "title": "SARI Influenza Cascade",
             "url": "/overview/findCascade",
-            "file": "overview.findCascade.sql"
+            "query": "SELECT [VariableId],[Ordinal],[Variable],[VariableValue],[VariableParentId] FROM [dbo].[CascadeHelper]",
+            "filter": false
         },
         {
-            "title": "Weekly number of hospitalized ILI & SARI patients and percent ILI & SARI specimens testing positive for influenza and SARS-COV-2 [Done]",
+            "title": "Weekly number of hospitalized ILI & SARI patients and percent ILI & SARI specimens testing positive for influenza and SARS-COV-2 [TODO! Order by Year, Month and EpiWeek]",
             "url": "/overview/findInfluenzaHospitalizationOvertime",
-            "file": "overview.findInfluenzaHospitalizationOvertime.sql"
+            "query": "SELECT SUM(Tested) AS TestedNumber, CASE WHEN SUM(flueTestDone) = 0 THEN 0 ELSE (SUM(InfluenzaAPositive) + SUM(InfluenzaBPositive) + SUM(InfluenzaABPositive)) * 100.0 / NULLIF(SUM(flueTestDone), 0) END AS InfluenzaPositivePercent, CASE WHEN SUM(CovidTEstDone) = 0 THEN 0 ELSE (SUM(CovidPositive)) * 100.0 / NULLIF(SUM(CovidTEstDone), 0) END AS SARSCOV2PositivePercent, EpiWeek, YEAR, Month FROM (SELECT CASE WHEN flutest = 1 or CovidTest = 1 then flutest end Tested, CASE WHEN CovidPos = 1 THEN 1 else 0 end CovidPositive, CASE WHEN covidTEst = 1 THEN 1 else 0 end CovidTEstDone, CASE WHEN fluaPos = 1 THEN 1 else 0 END InfluenzaAPositive, CASE WHEN flubPos = 1 THEN 1 else 0 END InfluenzaBPositive, CASE WHEN flubPos = 1 and fluApos = 1 then 1 else 0 END InfluenzaABPositive, CASE WHEN flutest = 1 THEN 1 else 0 END flueTestDone, B.FacilityKey as FacilityID, B.DateScreenedKey, (SELECT WeekNumber FROM DimEpiWeek where WeekKey = b.EpiWeek) EpiWeek FROM [dbo].[FactSari] B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId {{WHERE}} GROUP BY EpiWeek, Month, Year ORDER BY MONTH,YEAR ASC;",
+            "filter": true
         },
         {
-            "title": "Patient Outcome [Done]",
+            "title": "Patient Outcome",
             "url": "/overview/findInfluenzaPatientOutcome",
-            "file": "overview.findInfluenzaPatientOutcome.sql"
+            "query": "SELECT SUM(Outcome1) as [DischargedFromHospitalNumber], SUM(Outcome2) as [DeathNumber], SUM(Outcome3) as [RefusedHospitalTreatmentNumber], SUM(Outcome4) as [AbscondedNumber], SUM(Outcome5) as [RefferedToAnotherFacilityNumber], SUM(Outcome1) * 100.0 / NULLIF(SUM(Outcome1 + Outcome2 + Outcome3 + Outcome4 + Outcome5), 0) AS [DischargedFromHospitalPercentage], SUM(Outcome2) * 100.0 / NULLIF(SUM(Outcome1 + Outcome2 + Outcome3 + Outcome4 + Outcome5), 0) AS [DeathPercentage], SUM(Outcome3) * 100.0 / NULLIF(SUM(Outcome1 + Outcome2 + Outcome3 + Outcome4 + Outcome5), 0) AS [RefusedHospitalTreatmentPercentage], SUM(Outcome4) * 100.0 / NULLIF(SUM(Outcome1 + Outcome2 + Outcome3 + Outcome4 + Outcome5), 0) AS [AbscondedPercentage], SUM(Outcome5) * 100.0 / NULLIF(SUM(Outcome1 + Outcome2 + Outcome3 + Outcome4 + Outcome5), 0) AS [RefferedToAnotherFacilityPercentage] FROM ( SELECT CASE WHEN outcome = 1 then 1 else 0 END as Outcome1, CASE WHEN outcome = 2 then 1 else 0 end as Outcome2, CASE WHEN outcome = 3 then 1 else 0 end as Outcome3, CASE WHEN outcome = 4 then 1 else 0 end as Outcome4, CASE WHEN outcome = 5 then 1 else 0 end as Outcome5, B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM [dbo].[FactSari] B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey {{WHERE}};",
+            "filter": true
         },
         {
-            "title": "Number of ILI/SARI Patients enrolled by Age Category [Done]",
-            "url": "/overview/enrolledByAgeGroup",
-            "file": "overview.enrolledByAgeGroup.sql"
-        },
-        {
-            "title": "SARI Patient Outcome [Done]",
-            "url": "/overview/SARIPatientOutcome",
-            "file": "overview.SARIPatientOutcome.sql"
-        },
-        {
-            "title": "Number enrolled by age category [TODO! Order by youngest]",
+            "title": "Number of ILI/SARI Patients enrolled by Age Category [TODO! Order by youngest]",
             "url": "/influenza/enrolledByAgeGroup",
-            "file": "influenza.enrolledByAgeGroup.sql"
+            "query": "SELECT SUM(EnrolledNumber) EnrolledNumber, SUM(EnrolledNumber) * 100.0 / NULLIF(SUM(SUM(EnrolledNumber)) OVER (), 0) AS EnrolledPercent, AgeCategory FROM ( SELECT CASE WHEN Enrolled = 1 AND agecat IS NOT NULL then 1 else 0 END as EnrolledNumber, (SELECT [AgeGroupCategory] FROM [dbo].[DimAgeGroup] WHERE [AgeGroupId] = B.AgeCat ) AS AgeCategory, B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM [dbo].[FactSari] B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey {{WHERE}} GROUP BY AgeCategory;",
+            "filter": true
         },
         {
-
             "title": "Number positive for flu by Age Category [TODO! Order by youngest]",
             "url": "/influenza/flupositiveByAgeGroup",
-            "file": "influenza.flupositiveByAgeGroup.sql"
+            "query": "SELECT SUM(FluPositiveNumber) FluPositiveNumber, SUM(FluPositiveNumber) * 100.0 / NULLIF(SUM(SUM(FluPositiveNumber)) OVER (), 0) AS FluPositivePercent, AgeCategory FROM ( SELECT CASE WHEN flutest = 1 AND FluaPos = 1 or FlubPos = 1 then 1 else 0 END as FluPositiveNumber, ( SELECT [AgeGroupCategory] FROM [dbo].[DimAgeGroup] WHERE [AgeGroupId] = B.AgeCat ) AS AgeCategory, B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM [dbo].[FactSari] B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey {{WHERE}} GROUP BY AgeCategory;",
+            "filter": true
         },
         {
             "title": "Influenza Types Distribution",
             "url": "/influenza/findTypesByDistribution",
-            "file": "influenza.findTypesByDistribution.sql"
+            "query": "SELECT SUM(InfluenzaAPositive) InfluenzaAPositiveNumber, SUM(InfluenzaBPositive)InfluenzaBPositiveNumber, SUM(TotalTestsDone) TotalTestsDone, SUM(InfluenzaAPositive) * 100.0 / NULLIF(SUM(TotalTestsDone), 0) AS InfluenzaAPositivePercent, SUM(InfluenzaBPositive) * 100.0 / NULLIF(SUM(TotalTestsDone), 0) AS InfluenzaBPositivePercent, ((SUM(TotalTestsDone) - (SUM(InfluenzaAPositive) + SUM(InfluenzaBPositive))) * 100) / (SUM(TotalTestsDone)) NegativeFluPercent, (SUM(TotalTestsDone)) - (SUM(InfluenzaAPositive) + SUM(InfluenzaBPositive)) NegativeFluNumber FROM ( SELECT CASE when fluaPos = 1 then 1 else 0 end InfluenzaAPositive, CASE when flubpos = 1 then 1 else 0 end InfluenzaBPositive, CASE WHEN flutest = 1 then 1 else 0 end TotalTestsDone, B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM [dbo].[FactSari] B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey {{WHERE}};",
+            "filter": true
         },
         {
-            "title": "Influenza A Subtypes Distribution [Done]",
+            "title": "Influenza A Subtypes Distribution",
             "url": "/influenza/findInfluenzaASubtypesDistribution",
-            "file": "influenza.findInfluenzaASubtypesDistribution.sql"
+            "query": "SELECT SUM(NotSubTypeNumber)NotSubTypeNumber, SUM(AH1N1Number)AH1N1Number, SUM(AH3N2Number)AH3N2Number, SUM(NonSubTypableNumber)NonSubTypableNumber, (SUM(NotSubTypeNumber) + SUM(AH1N1Number) + SUM(AH3N2Number) + SUM(NonSubTypableNumber)) TotalInfluenzaSubTypeA, ((SUM(NotSubTypeNumber)) * 100) / ((SUM(NotSubTypeNumber) + SUM(AH1N1Number) + SUM(AH3N2Number) + SUM(NonSubTypableNumber))) NotSubTypeNumberPercent, ((SUM(AH1N1Number) * 100)) / ((SUM(NotSubTypeNumber) + SUM(AH1N1Number) + SUM(AH3N2Number) + SUM(NonSubTypableNumber))) AH1N1NumberPercent, ((SUM(AH3N2Number) * 100)) / ((SUM(NotSubTypeNumber) + SUM(AH1N1Number) + SUM(AH3N2Number) + SUM(NonSubTypableNumber))) AH3N2NumberPercent, ((SUM(NonSubTypableNumber)) * 100) / ((SUM(NotSubTypeNumber) + SUM(AH1N1Number) + SUM(AH3N2Number) + SUM(NonSubTypableNumber))) NonSubTypableNumberPercent FROM ( SELECT CASE when notsubtyp = 1 and flutest = 1 then 1 else 0 END [NotSubTypeNumber], CASE when ph1n1 = 1 and flutest = 1 then 1 else 0 END [AH1N1Number], CASE when h3n2 = 1 and flutest = 1 then 1 else 0 END [AH3N2Number], CASE when unsub_non = 1 and flutest = 1 then 1 else 0 END[NonSubTypableNumber], B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM [dbo].[FactSari] B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey {{WHERE}};",
+            "filter": true
         },
         {
-            "title": "Influenza B Lineage Distribution [Done]",
+            "title": "Influenza B Lineage Distribution",
             "url": "/influenza/findInfluenzaBLineageDistribution",
-            "file": "influenza.findInfluenzaBLineageDistribution.sql"
+            "query": "SELECT SUM(YamagataNumber)YamagataNumber, SUM(VictoriaNumber)VictoriaNumber, SUM(NotdeterminedNumber)NotdeterminedNumber, (SUM(YamagataNumber) + SUM(VictoriaNumber) + SUM(NotdeterminedNumber)) TotalInfluenzaBLineage, ((SUM(YamagataNumber)) * 100) / ((SUM(YamagataNumber) + SUM(VictoriaNumber) + SUM(NotdeterminedNumber))) YamagataPercent, ((SUM(VictoriaNumber)) * 100) / ((SUM(YamagataNumber) + SUM(VictoriaNumber) + SUM(NotdeterminedNumber))) VictoriaPercent, ((SUM(NotdeterminedNumber)) * 100) / ((SUM(YamagataNumber) + SUM(VictoriaNumber) + SUM(NotdeterminedNumber))) NotdeterminedPercent FROM ( SELECT CASE WHEN yamagata = 1 and flutest = 1 THEN 1 else 0 END YamagataNumber, CASE WHEN victoria = 1 and flutest = 1 THEN 1 else 0 END VictoriaNumber, CASE WHEN FlubUndetermined = 1 and flutest = 1 THEN 1 else 0 END NotdeterminedNumber, B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM [dbo].[FactSari] B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey {{WHERE}};",
+            "filter": true
         },
         {
-            "title": "Number positive for influenza by type and epi week [TODO! Order by Year, Month and EpiWeek]",
+            "title": "Overall SARS-COV-2 Positivity (Deprecated)",
+            "url": "/overview/findOverallSARSCOV2Positivity",
+            "query": "SELECT CovidNegativeNumber, CovidPositiveNumber, CovidTestedNumber, ((CovidNegativeNumber) * 100)/((CovidTestedNumber )) CovidNegativeNumberPercent, ((CovidPositiveNumber) * 100)/((CovidTestedNumber )) CovidPositiveNumberPercent FROM ( SELECT Count(CASE WHEN CovidPos = 1 THEN CovidPos end) CovidPositiveNumber, Count(CAsE WHEN CovidPos = 0 THEN covidPos END) CovidNegativeNumber, (Count(CASE WHEN CovidPos = 1 THEN CovidPos end) + Count(CAsE WHEN CovidPos = 0 THEN covidPos END)) CovidTestedNumber FROM [dbo].[FactSari] ) A",
+            "filter": false
+        },
+        {
+            "title": "SARS-COV-2 Positivity over time (Deprecated)",
+            "url": "/overview/findSARSCOV2PositivityOvertime",
+            "query": "SELECT COUNT(CASE WHEN CovidTEST = 1 THEN CovidTEst END ) Covid19Tested, COUNT (CASE WHEN CovidPos = 1 THEN CovidPos END ) Covid19Positive, CAST((COUNT (CASE WHEN CovidPos = 1 THEN CovidPos END ) * 100.0 / COUNT(CASE WHEN CovidTEST = 1 THEN CovidTEst END )) AS decimal (18,0)) AS Covid19PositivePercent, EPIWeek FROM [dbo].[FactSari] P WHERE CovidTest = 1 GROUP BY EpiWeek",
+            "filter": false
+        },
+        {
+            "title": "Number positive for influenza by type and epiweek [TODO! Order by Year, Month and EpiWeek]",
             "url": "/influenza/findInfluenzaPositivityByTypeOvertime",
-            "file": "influenza.findInfluenzaPositivityByTypeOvertime.sql"
+            "query": "SELECT SUM(InfluenzaAPositive) as InfluenzaAPositiveNumber, SUM(InfluenzaBPositive) as InfluenzaBPositiveNumber, SUM(TotalTestsDone) as SampleTestedNumber, CASE WHEN SUM(TotalTestsDone) = 0 THEN NULL ELSE (SUM(InfluenzaAPositive) + SUM(InfluenzaBPositive)) * 100.0 / SUM(TotalTestsDone) END AS InfluenzaPositivePercentage, SUM(TotalTestsDone) - (SUM(InfluenzaAPositive) + SUM(InfluenzaBPositive)) AS InfluenzaNegativeNumber, EpiWeek, D.Year, D.Month FROM ( SELECT CASE when fluaPos = 1 then 1 else 0 end InfluenzaAPositive, CASE when flubpos = 1 then 1 else 0 end InfluenzaBPositive, CASE WHEN flutest = 1 then 1 else 0 end TotalTestsDone, B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM [dbo].[FactSari] B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey {{WHERE}} GROUP BY EpiWeek, D.Month, D.YEAR ORder by Year;",
+            "filter": true
         },
         {
             "title": "Influenza strains overtime [TODO! Order by Year, Month and EpiWeek]",
             "url": "/influenza/findInfluenzaStrainsOvertime",
-            "file": "influenza.findInfluenzaStrainsOvertime.sql"
+            "query": "SELECT SUM([NotSubTypeNumber]) AS NotSubTypeNumber, SUM([AH1N1Number]) AS AH1N1Number, SUM([AH3N2Number]) AS AH3N2Number, SUM([NonSubTypableNumber]) AS NonSubTypableNumber, SUM([YamagataNumber]) AS YamagataNumber, SUM([VictoriaNumber]) AS VictoriaNumber, SUM([NotDeterminedNumber]) AS NotDeterminedNumber, SUM([InfluenzaNegativeNumber]) AS InfluenzaNegativeNumber, SUM([InfluenzaPositiveNumber]) AS InfluenzaPositiveNumber, E.WeekNumber, D.Year, D.Month FROM ( SELECT id, CASE WHEN notsubtyp = 1 AND flutest = 1 THEN 1 else 0 END AS [NotSubTypeNumber], CASE WHEN ph1n1 = 1 AND flutest = 1 THEN 1 else 0 END AS [AH1N1Number], CASE WHEN h3n2 = 1 AND flutest = 1 THEN 1 else 0 END AS [AH3N2Number], CASE WHEN unsub_non = 1 AND flutest = 1 THEN 1 else 0 END AS [NonSubTypableNumber], CASE WHEN yamagata = 1 AND flutest = 1 THEN 1 else 0 END AS [YamagataNumber], CASE WHEN victoria = 1 AND flutest = 1 THEN 1 else 0 END AS [VictoriaNumber], CASE WHEN FlubUndetermined = 1 AND flutest = 1 THEN 1 else 0 END AS [NotDeterminedNumber], CASE WHEN flutest = 0 THEN 1 else 0 END AS [InfluenzaNegativeNumber], CASE WHEN flutest = 1 THEN 1 else 0 END AS [InfluenzaPositiveNumber], B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM [dbo].[FactSari] B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey {{WHERE}} GROUP BY E.WeekNumber, D.Month, D.YEAR ORDER BY D.YEAR,D.Month,E.WeekNumber;",
+            "filter": true
         },
         {
-            "title": "Tested for SARS-COV-2 by Age Group [Done]",
+            "title": "Influenza positivity by type [Deprecated]",
+            "url": "/enrolment/findInfluenzaPositivityByType",
+            "query": "SELECT InfluenzaAPositive as InfluenzaAPositiveNumber , InfluenzaBPositive as InfluenzaBPositiveNumber, InfluenzaABPositive as InfluenzaABPositiveNumber, TotalTestsDone as TotalTestsDoneNumber, TestedNegativeFluNumber, CAST(round(((InfluenzaAPositive*100.0)/TotalTestsDone),2) as decimal(5,2))InfluenzaAPositivePercentage, CAST(round(((InfluenzaBPositive*100.0)/TotalTestsDone),2) as decimal(5,2))InfluenzaBPositivePercentage, CAST(round(((InfluenzaABPositive*100.0)/TotalTestsDone),2) as decimal(5,2))InfluenzaABPositivePercentage, TestedNegativeFluNumber FROM( SELECT COUNT(CASE when fluaPos = 1 then fluapos end) InfluenzaAPositive, COUNT(CASE when flubpos = 1 then flubpos end) InfluenzaBPositive, COUNT(CASE WHEN fluaPos = 1 and FlubPos =1 and flutest = 1 then FluaPos end) InfluenzaABPositive, COUNT(CASE WHEN flutest = 1 then flutest end) TotalTestsDone, (COUNT(CASE WHEN flutest = 1 then flutest end) - (COUNT(CASE when fluaPos = 1 then fluapos end) + COUNT(CASE when flubpos = 1 then flubpos end) + COUNT(CASE WHEN fluaPos = 1 and FlubPos =1 and flutest = 1 then FluaPos end))) TestedNegativeFluNumber FROM [dbo].[FactSari] ) A",
+            "filter": false
+        },
+        {
+            "title": "Influenza positivity by subtype [Deprecated]",
+            "url": "/enrolment/findInfluenzaPositivityBySubtype",
+            "query": "SELECT [NonSubTypableNumber] AS [FluANonSubTypableNumber], CAST(round((([NonSubTypableNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))FluANonSubTypablePercentage, [NotSubTypeNumber] AS [FluANotYetSubTypedNumber], CAST(round((([NotSubTypeNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))FluANotYetSubTypedPercentage, NotdeterminedNumber as [FlueBNotYetDeterminedNumber], CAST(round((([NotdeterminedNumber] * 100.0)/TotalFluTestNumber),2) as decimal(5,2))FlueBNotYetDeterminedPercentage, [H1N1Number] AS [H1N1Number], CAST(round((([H1N1Number]*100.0)/TotalFluTestNumber),2) as decimal(5,2))H1N1Percentage, [H3N2Number] AS [H3N2Number], CAST(round((([H3N2Number]*100.0)/TotalFluTestNumber),2) as decimal(5,2))H3N2Percentage, VictoriaNumber, CAST(round((([VictoriaNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))VictoriaPercentage, YamagataNumber, CAST(round((([YamagataNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))YamagataPercentage, TotalFluTestNumber, TestedNegativeFluNumber, CAST(round((([TestedNegativeFluNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))TestedNegativeFluPercentage FROM ( SELECT Count(CASE when notsubtyp = 1 and flutest = 1 then notsubtyp END) [NotSubTypeNumber], Count(CASE when ph1n1 = 1 and flutest = 1 then notsubtyp END) [H1N1Number], Count(CASE when h3n2 = 1 and flutest = 1 then notsubtyp END) [H3N2Number], Count(CASE when unsub_non = 1 and flutest = 1 then notsubtyp END) [NonSubTypableNumber], COUNT(CASE WHEN yamagata = 1 and flutest = 1 THEN yamagata END) YamagataNumber, COUNT(CASE WHEN victoria = 1 and flutest = 1 THEN victoria END) VictoriaNumber, COUNT(CASE WHEN FlubUndetermined = 1 and flutest =1 THEN FlubUndetermined END) NotdeterminedNumber, COUNT(CASE WHEN flutest = 1 THEN flutest END) TotalFluTestNumber, (COUNT(CASE WHEN flutest = 1 then flutest end) - (COUNT(CASE when fluaPos = 1 then fluapos end) + COUNT(CASE when flubpos = 1 then flubpos end) + COUNT(CASE WHEN fluaPos = 1 and FlubPos =1 and flutest = 1 then FluaPos end))) TestedNegativeFluNumber FROM [dbo].[FactSari]) A",
+            "filter": false
+        },
+        {
+            "title": "Tested for SARS-COV-2 by Age Group",
             "url": "/sarscov/testedByAgeGroup",
-            "file": "sarscov.testedByAgeGroup.sql"
+            "query": "SELECT SUM(SARSCOV2TestedNumber)SARSCOV2TestedNumber, (SUM(SARSCOV2TestedNumber) * 100.0) / NULLIF(SUM(SUM(SARSCOV2TestedNumber)) OVER (), 0) AS SARSCOV2TestedPercent, AgeGroupCategory FROM( SELECT CASE WHEN CovidTest = 1 AND AgeCat IS NOT NULL THEN 1 else 0 END SARSCOV2TestedNumber, B.AgeCat, B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM FactSari B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey INNER JOIN DimAgeGroup G on A.AgeCat = G.AgeGroupId {{WHERE}} Group by AgeGroupCategory, AgeGroupOrdinal ORDER BY AgeGroupOrdinal;",
+            "filter": true
         },
         {
-            "title": "SARS-COV-2 Positive Distribution by Age Category [Done]",
+            "title": "SARS-COV-2 Positive Distribution by Age Category",
             "url": "/sarscov/positiveDistributionByAgeGroup",
-            "file": "sarscov.positiveDistributionByAgeGroup.sql"
+            "query": "SELECT SUM(SARSCOV2PositiveNumber)SARSCOV2PositiveNumber, (SUM(SARSCOV2PositiveNumber) * 100.0) / NULLIF(SUM(SUM(SARSCOV2PositiveNumber)) OVER (), 0) AS SARSCOV2PositivePercent, AgeGroupCategory FROM( SELECT CASE WHEN CovidTest = 1 AND CovidPos = 1 and AgeCat IS NOT NULL THEN 1 else 0 END SARSCOV2PositiveNumber, B.AgeCat, B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM FactSari B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey INNER JOIN DimAgeGroup G on A.AgeCat = G.AgeGroupId {{WHERE}} Group by AgeGroupCategory, AgeGroupOrdinal ORDER BY AgeGroupOrdinal;",
+            "filter": true
         },
         {
-            "title": "Number of specimen tested and (%) for SARS-COV-2 over time [Done]",
+            "title": "Number of specimen tested and (%) for SARS-COV-2 over time ",
             "url": "/sarscov/SARSCOV2PositiveOvertime",
-            "file": "sarscov.SARSCOV2PositiveOvertime.sql"
-
+            "query": "SELECT SUM(SARSCOV2PositiveNumber)SARSCOV2PositiveNumber, SUM(SARSCOV2TestedNumber) SARSCOV2TestedNumber, E.WeekNumber AS EpiWeek, (SUM(SARSCOV2PositiveNumber) * 100.0) / NULLIF(SUM(SUM(SARSCOV2PositiveNumber)) OVER (), 0) AS SARSCOV2PositivePercent, D.Year, D.Month FROM( SELECT CASE WHEN CovidTest = 1 AND CovidPos = 1 and AgeCat IS NOT NULL THEN 1 else 0 END SARSCOV2PositiveNumber, CASE WHEN CovidTest = 1 AND AgeCat IS NOT NULL THEN 1 else 0 END SARSCOV2TestedNumber, B.FacilityKey as FacilityID, B.DateScreenedKey, B.EpiWeek FROM FactSari B ) A INNER JOIN DimDate D On A.DateScreenedKey = D.DateKey INNER JOIN DimFacility F on A.FacilityId = F.FacilityId INNER JOIN DimEpiWeek E on A.EpiWeek = E.WeekKey {{WHERE}} GROUP BY E.WeekNumber, D.Month, D.YEAR ORDER BY D.YEAR,D.Month,E.WeekNumber;",
+            "filter": true
         }
     ]
 }
