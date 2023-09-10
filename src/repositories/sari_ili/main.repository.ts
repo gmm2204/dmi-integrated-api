@@ -4,45 +4,22 @@ import Database from "../../db/database";
 import * as RoutesData from '../../data/sari_ili/routes.json';
 import { config, dialect } from "../../config/db.config";
 import { DataFilter } from "../../models/DataFilter.model";
+import { MRoute } from "../../models/MRoute.model";
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface IMainRepository {
-    readData(url: string): Promise<any[]>;
+    readPostData(req: Request): Promise<any[]>;
 }
 
 class MainRepository implements IMainRepository {
     db = new Database(config.DB_SARI);
     private retrievedData: any;
 
-    async readData(url: string): Promise<any[]> {
-        let route_query: string = ``;
-        let route_found: boolean = false;
-
-        RoutesData.routes.forEach(seekRoute => {
-            if (seekRoute.url == url) {
-                route_found = true;
-                route_query = seekRoute.query;
-            }
-        });
-
-        if ((route_found) && (route_query != "")) {
-            this.retrievedData = await this.db.sequelize?.query<any[]>(route_query, {
-                type: QueryTypes.SELECT,
-            });
-        } else {
-            this.retrievedData = [{
-                "message": "Unhandled request --> " + url
-            }];
-        }
-
-        return this.retrievedData;
-    }
-
     async readPostData(req: Request): Promise<any[]> {
         let url = req.url;
-        let targetRoute: {} = {};
-        let route_query: string = ``;
+        let TargetRoute: MRoute = new MRoute("", "", "");
         let route_filter_query: string = ``;
-        let route_found: boolean = false;
         let filterInstance = new DataFilter(req.body);
 
         //#region Compile filters
@@ -73,13 +50,14 @@ class MainRepository implements IMainRepository {
             route_filter_query += ` D.Year = '` + filterInstance.filter_year + `' `;
         }
 
+        // TODO! Test and confirm EpiWeek Filter
         if ((filterInstance.filter_epi_week_start != "-1") && (filterInstance.filter_epi_week_end != "-1")) {
             if (route_filter_query != ``) {
-                route_filter_query += ' AND '
+                // route_filter_query += ' AND '
             }
 
             // A.EpiWeek
-            route_filter_query += ` (A.EpiWeek BETWEEN ` + filterInstance.filter_epi_week_start + ` AND ` + filterInstance.filter_epi_week_end + `) `;
+            // route_filter_query += ` (A.EpiWeek BETWEEN ` + filterInstance.filter_epi_week_start + ` AND ` + filterInstance.filter_epi_week_end + `) `;
         }
 
         if (route_filter_query != ``) {
@@ -87,30 +65,49 @@ class MainRepository implements IMainRepository {
         }
         //#endregion
 
-        RoutesData.routes.forEach(seekRoute => {
-            if (seekRoute.url == url) {
-                targetRoute = seekRoute;
-                route_found = true;
-                route_query = seekRoute.query;
-
-                if (seekRoute.filter) {
-                    // route_query += route_filter_query    
-
-                    route_query = route_query.replace("{{WHERE}}", route_filter_query);
-                    console.log("---------------------------------------");
-                    console.log(route_query);
-                    console.log("---------------------------------------");
-                }
+        //#region Seek target route
+        for (let i = 0; i < RoutesData.routes.length; i++) {
+            if (RoutesData.routes[i].url == url) {
+                TargetRoute = new MRoute(
+                    RoutesData.routes[i].title,
+                    RoutesData.routes[i].url,
+                    RoutesData.routes[i].file);
+                break;
             }
-        });
+        }
+        //#endregion
 
-        if ((route_found) && (route_query != "")) {
-            this.retrievedData = await this.db.sequelize?.query<any[]>(route_query, {
+        //#region Read target query file
+        if (TargetRoute.file != "") {
+            TargetRoute.query = await this.readQuery(TargetRoute);
+        }
+        //#endregion
+
+        return await this.executeQuery(TargetRoute, route_filter_query);
+    }
+
+    async readQuery(RouteInstance: MRoute) {
+        try {
+            return fs.readFileSync(path.join("build/src/data/sari_ili/queries/", RouteInstance.file), 'utf8');
+        } catch (error) {
+            return "";
+        }
+    }
+
+    async executeQuery(RouteInstance: MRoute, filter_query: string): Promise<any[]> {
+        if (RouteInstance.query != "") {
+            RouteInstance.query = RouteInstance.query.replace("--{{WHERE}}--", filter_query);
+
+            console.log("************************************");
+            console.log(RouteInstance.query);
+            console.log("************************************");
+
+            this.retrievedData = await this.db.sequelize?.query<any[]>(RouteInstance.query, {
                 type: QueryTypes.SELECT,
             });
         } else {
             this.retrievedData = [{
-                "message": "Unhandled request --> " + url
+                "message": "Unhandled request --> " + RouteInstance.url
             }];
         }
 
