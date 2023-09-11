@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import Database from "../../db/database";
 import * as RoutesData from '../../data/sari_ili/routes.json';
 import { config, dialect } from "../../config/db.config";
-import { DataFilter } from "../../models/DataFilter.model";
+import { MFilter } from "../../models/MFilter.model";
 import { MRoute } from "../../models/MRoute.model";
 import * as fs from 'fs';
 import * as path from 'path';
@@ -20,7 +20,7 @@ class MainRepository implements IMainRepository {
         let url = req.url;
         let TargetRoute: MRoute = new MRoute("", "", "");
         let route_filter_query: string = ``;
-        let filterInstance = new DataFilter(req.body);
+        let filterInstance = new MFilter(req.body);
 
         //#region Compile filters
         if (filterInstance.filter_facility != "-1") {
