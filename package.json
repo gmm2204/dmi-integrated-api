@@ -8,7 +8,7 @@
     "build": "tsc",
     "dev": "node ./build/server.js",
     "start": "tsc && npm run copy && npm run dev",
-    "copy": "node -e \"const fs = require('fs'); fs.cp('./src/data', './build/src/data', {recursive: true}, (err) => { });\""
+    "copy": "node -e \"const fs = require('fs'); fs.cp('src/data', 'build/src/data', {recursive: true}, (err) => { });\""
   },
   "keywords": [
     "node",
