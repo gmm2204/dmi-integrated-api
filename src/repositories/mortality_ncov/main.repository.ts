@@ -3,7 +3,7 @@ import { QueryTypes } from "sequelize";
 import Database from "../../db/database";
 import * as RoutesData from '../../data/mortality_ncov/routes.json';
 import { config } from "../../config/db.config";
-import { DataFilter } from "../../models/DataFilter.model";
+import { IDFilter } from "../../models/IDFilter.model";
 
 interface IMainRepository {
     readData(url: string): Promise<any[]>;
@@ -43,7 +43,7 @@ class MainRepository implements IMainRepository {
         let route_query: string = ``;
         let route_filter_query: string = ``;
         let route_found: boolean = false;
-        let filterInstance = new DataFilter(req.body);
+        let filterInstance = new IDFilter(req.body);
 
         //#region Compile filters
         if (filterInstance.filter_facility != "-1") {
