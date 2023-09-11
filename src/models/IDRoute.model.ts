@@ -1,4 +1,4 @@
-export class MRoute {
+export class IDRoute {
   title: string = "";
   url: string = "";
   file: string = "";

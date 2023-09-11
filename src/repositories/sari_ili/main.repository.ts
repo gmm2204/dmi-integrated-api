@@ -3,8 +3,8 @@ import { Request, Response } from "express";
 import Database from "../../db/database";
 import * as RoutesData from '../../data/sari_ili/routes.json';
 import { config, dialect } from "../../config/db.config";
-import { MFilter } from "../../models/MFilter.model";
-import { MRoute } from "../../models/MRoute.model";
+import { IDFilter } from "../../models/IDFilter.model";
+import { IDRoute } from "../../models/IDRoute.model";
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -18,9 +18,9 @@ class MainRepository implements IMainRepository {
 
     async readPostData(req: Request): Promise<any[]> {
         let url = req.url;
-        let TargetRoute: MRoute = new MRoute("", "", "");
+        let TargetRoute: IDRoute = new IDRoute("", "", "");
         let route_filter_query: string = ``;
-        let filterInstance = new MFilter(req.body);
+        let filterInstance = new IDFilter(req.body);
 
         //#region Compile filters
         if (filterInstance.filter_facility != "-1") {
@@ -68,7 +68,7 @@ class MainRepository implements IMainRepository {
         //#region Seek target route
         for (let i = 0; i < RoutesData.routes.length; i++) {
             if (RoutesData.routes[i].url == url) {
-                TargetRoute = new MRoute(
+                TargetRoute = new IDRoute(
                     RoutesData.routes[i].title,
                     RoutesData.routes[i].url,
                     RoutesData.routes[i].file);
@@ -86,7 +86,7 @@ class MainRepository implements IMainRepository {
         return await this.executeQuery(TargetRoute, route_filter_query);
     }
 
-    async readQuery(RouteInstance: MRoute) {
+    async readQuery(RouteInstance: IDRoute) {
         try {
             return fs.readFileSync(path.join("build/src/data/sari_ili/queries/", RouteInstance.file), 'utf8');
         } catch (error) {
@@ -94,7 +94,7 @@ class MainRepository implements IMainRepository {
         }
     }
 
-    async executeQuery(RouteInstance: MRoute, filter_query: string): Promise<any[]> {
+    async executeQuery(RouteInstance: IDRoute, filter_query: string): Promise<any[]> {
         if (RouteInstance.query != "") {
             RouteInstance.query = RouteInstance.query.replace("--{{WHERE}}--", filter_query);
 
