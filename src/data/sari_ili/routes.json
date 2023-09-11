@@ -36,7 +36,6 @@
             "file": "influenza.enrolledByAgeGroup.sql"
         },
         {
-
             "title": "Number positive for flu by Age Category [TODO! Order by youngest]",
             "url": "/influenza/flupositiveByAgeGroup",
             "file": "influenza.flupositiveByAgeGroup.sql"
@@ -80,7 +79,6 @@
             "title": "Number of specimen tested and (%) for SARS-COV-2 over time [Done]",
             "url": "/sarscov/SARSCOV2PositiveOvertime",
             "file": "sarscov.SARSCOV2PositiveOvertime.sql"
-
         }
     ]
 }
