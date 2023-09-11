@@ -25,7 +25,8 @@ jobs:
           sudo mkdir src/config
           sudo cp -rf /var/lib/API/config/* src/config/
           sudo npm install
-          sudo npm run start
           sudo cp -rf . /var/lib/API/dmi-integrated-api/
+          cd /var/lib/API/dmi-integrated-api/
+          sudo npm run start
           sudo pm2 reload all --update-env
           echo "Integrated API is upto date"
