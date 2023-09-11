@@ -12,7 +12,7 @@ class MainRoutes {
 
     intializeRoutes() {
         RoutesData.routes.forEach(routeInstance => {
-            this.router.get(routeInstance.url, this.controller.getData);
+            this.router.post(routeInstance.url, this.controller.postData);
         });
     }
 }

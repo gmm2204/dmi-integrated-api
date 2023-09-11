@@ -1,89 +1,84 @@
 {
     "routes": [
         {
+            "title": "Acquire composite SARI/ILI Facilities",
+            "url": "/acquireCompositeFacilities",
+            "file": "acquireCompositeFacilities.sql"
+        },
+        {
             "title": "SARI Influenza Cascade",
             "url": "/overview/findCascade",
-            "query": "SELECT [VariableId],[Ordinal],[Variable],[VariableValue],[VariableParentId] FROM [dbo].[CascadeHelper]"
+            "file": "overview.findCascade.sql"
         },
         {
-            "title": "Weekly number of hospitalized ILI & SARI patients and percent ILI & SARI specimens testing positive for influenza and SARS-COV-2",
+            "title": "Weekly number of hospitalized ILI & SARI patients and percent ILI & SARI specimens testing positive for influenza and SARS-COV-2 [Done]",
             "url": "/overview/findInfluenzaHospitalizationOvertime",
-            "query": "SELECT Tested, ((InfluenzaAPositive+ InfluenzaBPositive + InfluenzaABPositive) * 100/( flueTestDone)) InfluenzaPositivePercent, ((CovidPositive) * 100/( CovidTEstDone)) SARSCOV2PositivePercent, EpiWeek FROM ( SELECT COUNT(CASE WHEN flutest = 1 or CovidTest = 1 then flutest end) Tested, Count (CASE WHEN CovidPos = 1 THEN CovidPos end) CovidPositive, Count(CASE WHEN covidTEst = 1 THEN covidTEst end) CovidTEstDone, COUNT (CASE WHEN fluaPos = 1 THEN Fluapos END) InfluenzaAPositive, COUNT (CASE WHEN flubPos = 1 THEN Flubpos END) InfluenzaBPositive, COUNT (CASE WHEN flubPos = 1 and fluApos = 1 then FlubPos END) InfluenzaABPositive, COUNT(CASE WHEN flutest = 1 THEN flutest END) flueTestDone, (SELECT WeekNumber FROM DimEpiWeek where WeekKey = b.EpiWeek ) EpiWeek FROM [dbo].[FactSari] b GROUP BY EpiWeek ) A ORder by EpiWeek"
+            "file": "overview.findInfluenzaHospitalizationOvertime.sql"
         },
         {
-            "title": "Patient Outcome",
+            "title": "Patient Outcome [Done]",
             "url": "/overview/findInfluenzaPatientOutcome",
-            "query": "SELECT Outcome1 as [DischargedFromHospital] , Outcome2 as [DeathNumber], Outcome3 as [RefusedHospitalTreatment], Outcome4 as [AbscondedNumber], Outcome5 as [RefferedToAnotherFacilityNumber], TotalOutcome, (Outcome1 * 100/( totalOutcome)) [DischargedFromHospitalPercentage], (Outcome2 * 100/( totalOutcome)) [DeathPercentage], (Outcome3 * 100/( totalOutcome)) [RefusedHospitalTreatmentPercentage], (Outcome4 * 100/( totalOutcome)) [AbscondedPercentage], (Outcome5 * 100/( totalOutcome)) [RefferedToAnotherFacilityPercentage] FROM ( SELECT count(CASE WHEN outcome = 1 then outcome END ) as Outcome1, Count(CASE WHEN outcome = 2 then outcome end) as Outcome2, Count(CASE WHEN outcome =3 then outcome end) as Outcome3, COunt(CASE WHEN outcome = 4 then outcome end) as Outcome4, Count(CASE WHEN outcome =5 then outcome end ) as Outcome5, ( count(CASE WHEN outcome = 1 then outcome END ) + Count(CASE WHEN outcome = 2 then outcome end) + Count(CASE WHEN outcome =3 then outcome end) + COunt(CASE WHEN outcome = 4 then outcome end) + Count(CASE WHEN outcome =5 then outcome end )) TotalOutcome FROM [dbo].[FactSari] ) A"
+            "file": "overview.findInfluenzaPatientOutcome.sql"
         },
         {
-            "title": "Number of ILI/SARI Patients enrolled by Age Category",
+            "title": "Number of ILI/SARI Patients enrolled by Age Category [Done]",
             "url": "/overview/enrolledByAgeGroup",
-            "query": "SELECT COUNT(Id) AS EnrolledNumber, (SELECT [AgeGroupCategory] FROM [dbo].[DimAgeGroup] WHERE [AgeGroupId] = A.AgeCat) AS AgeCategory, (COUNT(Id) * 100.0) / NULLIF(SUM(COUNT(Id)) OVER (), 0) AS EnrolledPercentage FROM [dbo].[FactSari] A WHERE Enrolled = 1 AND agecat IS NOT NULL GROUP BY AgeCat;"
+            "file": "overview.enrolledByAgeGroup.sql"
         },
         {
-            "title": "Number positive for flu by Age Category",
+            "title": "SARI Patient Outcome [Done]",
+            "url": "/overview/SARIPatientOutcome",
+            "file": "overview.SARIPatientOutcome.sql"
+        },
+        {
+            "title": "Number enrolled by age category [TODO! Order by youngest]",
+            "url": "/influenza/enrolledByAgeGroup",
+            "file": "influenza.enrolledByAgeGroup.sql"
+        },
+        {
+            "title": "Number positive for flu by Age Category [TODO! Order by youngest]",
             "url": "/influenza/flupositiveByAgeGroup",
-            "query": "SELECT COUNT(Id) AS FluPositiveNumber, (SELECT [AgeGroupCategory] FROM [dbo].[DimAgeGroup] WHERE [AgeGroupId] = A.AgeCat) AS AgeCategory, (COUNT(Id) * 100.0) / NULLIF(SUM(COUNT(Id)) OVER (), 0) AS FluPositivePercentage FROM FactSari A WHERE (flutest = 1 AND flupos = 1) OR FlubPos = 1 GROUP BY AgeCat;"
+            "file": "influenza.flupositiveByAgeGroup.sql"
         },
         {
             "title": "Influenza Types Distribution",
             "url": "/influenza/findTypesByDistribution",
-            "query": "SELECT InfluenzaAPositive, InfluenzaBPositive, TotalTestsDone, (InfluenzaAPositive * 100/( TotalTestsDone)) InfluenzaAPositivePercent, (InfluenzaBPositive * 100/( TotalTestsDone)) InfluenzaBPositivePercent, ((TotalTestsDone -(InfluenzaAPositive + InfluenzaBPositive)) * 100)/(TotalTestsDone) NegativeFluPercent, (TotalTestsDone) - (InfluenzaAPositive + InfluenzaBPositive) NegativeFluNumber FROM( SELECT COUNT(CASE when fluaPos = 1 then fluapos end) InfluenzaAPositive, COUNT(CASE when flubpos = 1 then flubpos end) InfluenzaBPositive, COUNT(CASE WHEN flutest = 1 then flutest end) TotalTestsDone FROM [dbo].[FactSari] ) A"
+            "file": "influenza.findTypesByDistribution.sql"
         },
         {
-            "title": "Influenza A Subtypes Distribution",
+            "title": "Influenza A Subtypes Distribution [Done]",
             "url": "/influenza/findInfluenzaASubtypesDistribution",
-            "query": "SELECT NotSubTypeNumber, AH1N1Number, AH3N2Number, NonSubTypableNumber, (NotSubTypeNumber + AH1N1Number + AH3N2Number + NonSubTypableNumber) TotalInfluenzaSubTypeA, ((NotSubTypeNumber) * 100)/((NotSubTypeNumber + AH1N1Number + AH3N2Number + NonSubTypableNumber)) NotSubTypeNumberPercent, ((AH1N1Number) * 100)/((NotSubTypeNumber + AH1N1Number + AH3N2Number + NonSubTypableNumber)) AH1N1NumberPercent, ((AH3N2Number) * 100)/((NotSubTypeNumber + AH1N1Number + AH3N2Number + NonSubTypableNumber)) AH3N2NumberPercent, ((NonSubTypableNumber) * 100)/((NotSubTypeNumber + AH1N1Number + AH3N2Number + NonSubTypableNumber)) NonSubTypableNumberPercent FROM ( SELECT Count(CASE when notsubtyp = 1 and flutest = 1 then notsubtyp END) [NotSubTypeNumber], Count(CASE when ph1n1 = 1 and flutest = 1 then notsubtyp END) [AH1N1Number], Count(CASE when h3n2 = 1 and flutest = 1 then notsubtyp END) [AH3N2Number], Count(CASE when unsub_non = 1 and flutest = 1 then notsubtyp END) [NonSubTypableNumber] FROM [dbo].[FactSari]) A"
+            "file": "influenza.findInfluenzaASubtypesDistribution.sql"
         },
         {
-            "title": "Influenza B Lineage Distribution",
+            "title": "Influenza B Lineage Distribution [Done]",
             "url": "/influenza/findInfluenzaBLineageDistribution",
-            "query": "SELECT YamagataNumber, VictoriaNumber, NotdeterminedNumber, (YamagataNumber + VictoriaNumber + NotdeterminedNumber ) TotalInfluenzaBLineage, ((YamagataNumber) * 100)/((YamagataNumber + VictoriaNumber + NotdeterminedNumber )) YamagataNumberPercent, ((VictoriaNumber) * 100)/((YamagataNumber + VictoriaNumber + NotdeterminedNumber )) VictoriaNumberPercent, ((NotdeterminedNumber) * 100)/((YamagataNumber + VictoriaNumber + NotdeterminedNumber )) NotdeterminedNumberPercent FROM ( SELECT COUNT(CASE WHEN yamagata = 1 and flutest = 1 THEN yamagata END) YamagataNumber, COUNT(CASE WHEN victoria = 1 and flutest = 1 THEN victoria END) VictoriaNumber, COUNT(CASE WHEN FlubUndetermined = 1 and flutest =1 THEN FlubUndetermined END) NotdeterminedNumber FROM [dbo].[FactSari] ) A"
+            "file": "influenza.findInfluenzaBLineageDistribution.sql"
         },
         {
-            "title": "Overall SARS-COV-2 Positivity (Deprecated)",
-            "url": "/overview/findOverallSARSCOV2Positivity",
-            "query": "SELECT CovidNegativeNumber, CovidPositiveNumber, CovidTestedNumber, ((CovidNegativeNumber) * 100)/((CovidTestedNumber )) CovidNegativeNumberPercent, ((CovidPositiveNumber) * 100)/((CovidTestedNumber )) CovidPositiveNumberPercent FROM ( SELECT Count(CASE WHEN CovidPos = 1 THEN CovidPos end) CovidPositiveNumber, Count(CAsE WHEN CovidPos = 0 THEN covidPos END) CovidNegativeNumber, (Count(CASE WHEN CovidPos = 1 THEN CovidPos end) + Count(CAsE WHEN CovidPos = 0 THEN covidPos END)) CovidTestedNumber FROM [dbo].[FactSari] ) A"
-        },
-        {
-            "title": "SARS-COV-2 Positivity over time (Deprecated)",
-            "url": "/overview/findSARSCOV2PositivityOvertime",
-            "query": "SELECT COUNT(CASE WHEN CovidTEST = 1 THEN CovidTEst END ) Covid19Tested, COUNT (CASE WHEN CovidPos = 1 THEN CovidPos END ) Covid19Positive, CAST((COUNT (CASE WHEN CovidPos = 1 THEN CovidPos END ) * 100.0 / COUNT(CASE WHEN CovidTEST = 1 THEN CovidTEst END )) AS decimal (18,0)) AS Covid19PositivePercent, EPIWeek FROM [dbo].[FactSari] P WHERE CovidTest = 1 GROUP BY EpiWeek"
-        },
-        {
-            "title": "Number positive for influenza by type and epiweek",
+            "title": "Number positive for influenza by type and epi week [TODO! Order by Year, Month and EpiWeek]",
             "url": "/influenza/findInfluenzaPositivityByTypeOvertime",
-            "query": "SELECT InfluenzaAPositive as InfluenzaAPositiveNumber, InfluenzaBPositive as InfluenzaBPositiveNumber, TotalTestsDone as SampleTestedNumber, ((InfluenzaAPositive + InfluenzaBPositive) * 100/( TotalTestsDone)) InfluenzaPositivePercentage, (TotalTestsDone) - (InfluenzaAPositive + InfluenzaBPositive) InfluenzaNegativeNumber, EpiWeek FROM( SELECT COUNT(CASE when fluaPos = 1 then fluapos end) InfluenzaAPositive, COUNT(CASE when flubpos = 1 then flubpos end) InfluenzaBPositive, COUNT(CASE WHEN flutest = 1 then flutest end) TotalTestsDone, EpiWeek FROM [dbo].[FactSari] Group by EpiWeek ) A ORDER BY EpiWeek"
+            "file": "influenza.findInfluenzaPositivityByTypeOvertime.sql"
         },
         {
-            "title": "Influenza strains overtime",
+            "title": "Influenza strains overtime [TODO! Order by Year, Month and EpiWeek]",
             "url": "/influenza/findInfluenzaStrainsOvertime",
-            "query": "SELECT Count(CASE when notsubtyp = 1 and flutest = 1 then notsubtyp END) [NotSubTypeNumber], Count(CASE when ph1n1 = 1 and flutest = 1 then notsubtyp END) [AH1N1Number], Count(CASE when h3n2 = 1 and flutest = 1 then notsubtyp END) [AH3N2Number], Count(CASE when unsub_non = 1 and flutest = 1 then notsubtyp END) [NonSubTypableNumber], COUNT(CASE WHEN yamagata = 1 and flutest = 1 THEN yamagata END) YamagataNumber, COUNT(CASE WHEN victoria = 1 and flutest = 1 THEN victoria END) VictoriaNumber, COUNT(CASE WHEN FlubUndetermined = 1 and flutest =1 THEN FlubUndetermined END) NotdeterminedNumber , Count(CASE when flutest = 0 then flutest END) [InfluenzaNeg], EpiWeek FROM [dbo].[FactSari] Group by EpiWeek ORDER BY EpiWeek"
+            "file": "influenza.findInfluenzaStrainsOvertime.sql"
         },
         {
-            "title": "Influenza positivity by type",
-            "url": "/enrolment/findInfluenzaPositivityByType",
-            "query": "SELECT InfluenzaAPositive as InfluenzaAPositiveNumber , InfluenzaBPositive as InfluenzaBPositiveNumber, InfluenzaABPositive as InfluenzaABPositiveNumber, TotalTestsDone as TotalTestsDoneNumber, TestedNegativeFluNumber, CAST(round(((InfluenzaAPositive*100.0)/TotalTestsDone),2) as decimal(5,2))InfluenzaAPositivePercentage, CAST(round(((InfluenzaBPositive*100.0)/TotalTestsDone),2) as decimal(5,2))InfluenzaBPositivePercentage, CAST(round(((InfluenzaABPositive*100.0)/TotalTestsDone),2) as decimal(5,2))InfluenzaABPositivePercentage, TestedNegativeFluNumber FROM( SELECT COUNT(CASE when fluaPos = 1 then fluapos end) InfluenzaAPositive, COUNT(CASE when flubpos = 1 then flubpos end) InfluenzaBPositive, COUNT(CASE WHEN fluaPos = 1 and FlubPos =1 and flutest = 1 then FluaPos end) InfluenzaABPositive, COUNT(CASE WHEN flutest = 1 then flutest end) TotalTestsDone, (COUNT(CASE WHEN flutest = 1 then flutest end) - (COUNT(CASE when fluaPos = 1 then fluapos end) + COUNT(CASE when flubpos = 1 then flubpos end) + COUNT(CASE WHEN fluaPos = 1 and FlubPos =1 and flutest = 1 then FluaPos end))) TestedNegativeFluNumber FROM [dbo].[FactSari] ) A"
-        },
-        {
-            "title": "Influenza positivity by subtype",
-            "url": "/enrolment/findInfluenzaPositivityBySubtype",
-            "query": "SELECT [NonSubTypableNumber] AS [FluANonSubTypableNumber], CAST(round((([NonSubTypableNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))FluANonSubTypablePercentage, [NotSubTypeNumber] AS [FluANotYetSubTypedNumber], CAST(round((([NotSubTypeNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))FluANotYetSubTypedPercentage, NotdeterminedNumber as [FlueBNotYetDeterminedNumber], CAST(round((([NotdeterminedNumber] * 100.0)/TotalFluTestNumber),2) as decimal(5,2))FlueBNotYetDeterminedPercentage, [H1N1Number] AS [H1N1Number], CAST(round((([H1N1Number]*100.0)/TotalFluTestNumber),2) as decimal(5,2))H1N1Percentage, [H3N2Number] AS [H3N2Number], CAST(round((([H3N2Number]*100.0)/TotalFluTestNumber),2) as decimal(5,2))H3N2Percentage, VictoriaNumber, CAST(round((([VictoriaNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))VictoriaPercentage, YamagataNumber, CAST(round((([YamagataNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))YamagataPercentage, TotalFluTestNumber, TestedNegativeFluNumber, CAST(round((([TestedNegativeFluNumber]*100.0)/TotalFluTestNumber),2) as decimal(5,2))TestedNegativeFluPercentage FROM ( SELECT Count(CASE when notsubtyp = 1 and flutest = 1 then notsubtyp END) [NotSubTypeNumber], Count(CASE when ph1n1 = 1 and flutest = 1 then notsubtyp END) [H1N1Number], Count(CASE when h3n2 = 1 and flutest = 1 then notsubtyp END) [H3N2Number], Count(CASE when unsub_non = 1 and flutest = 1 then notsubtyp END) [NonSubTypableNumber], COUNT(CASE WHEN yamagata = 1 and flutest = 1 THEN yamagata END) YamagataNumber, COUNT(CASE WHEN victoria = 1 and flutest = 1 THEN victoria END) VictoriaNumber, COUNT(CASE WHEN FlubUndetermined = 1 and flutest =1 THEN FlubUndetermined END) NotdeterminedNumber, COUNT(CASE WHEN flutest = 1 THEN flutest END) TotalFluTestNumber, (COUNT(CASE WHEN flutest = 1 then flutest end) - (COUNT(CASE when fluaPos = 1 then fluapos end) + COUNT(CASE when flubpos = 1 then flubpos end) + COUNT(CASE WHEN fluaPos = 1 and FlubPos =1 and flutest = 1 then FluaPos end))) TestedNegativeFluNumber FROM [dbo].[FactSari]) A"
-        },
-        {
-            "title": "Tested for SARS-COV-2 by Age Group",
+            "title": "Tested for SARS-COV-2 by Age Group [Done]",
             "url": "/sarscov/testedByAgeGroup",
-            "query": "SELECT COUNT(Id) AS SARSCOV2TestedNumber, (SELECT [AgeGroupCategory] FROM [dbo].[DimAgeGroup] WHERE [AgeGroupId] = A.AgeCat) AS AgeCategory, (COUNT(Id) * 100.0) / NULLIF(SUM(COUNT(Id)) OVER (), 0) AS SARSCOV2TestedPercentage FROM FactSari A where CovidTest =1 and AgeCat is not null GROUP BY AgeCat"
+            "file": "sarscov.testedByAgeGroup.sql"
         },
         {
-            "title": "SARS-COV-2 Positive Distribution by Age Category",
+            "title": "SARS-COV-2 Positive Distribution by Age Category [Done]",
             "url": "/sarscov/positiveDistributionByAgeGroup",
-            "query": "SELECT COUNT(Id) AS SARSCOV2PositiveNumber, (SELECT [AgeGroupCategory] FROM [dbo].[DimAgeGroup] WHERE [AgeGroupId] = A.AgeCat) AS AgeCategory, (COUNT(Id) * 100.0) / NULLIF(SUM(COUNT(Id)) OVER (), 0) AS SARSCOV2PositivePercentage FROM FactSari A where CovidTest =1 and CovidPos =1 and AgeCat is not null GROUP BY AgeCat"
+            "file": "sarscov.positiveDistributionByAgeGroup.sql"
         },
         {
-            "title": "Influenza positivity by subtype",
+            "title": "Number of specimen tested and (%) for SARS-COV-2 over time [Done]",
             "url": "/sarscov/SARSCOV2PositiveOvertime",
-            "query": "SELECT A.SARSCOV2PositiveNumber, A.CovidTestedNumber, A.EpiWeek, (A.SARSCOV2PositiveNumber * 100.0) / NULLIF(A.CovidTestedNumber, 0) AS SARSCOV2PositivePercentage FROM (SELECT SUM(CASE WHEN CovidPos = 1 THEN 1 ELSE 0 END) AS SARSCOV2PositiveNumber, SUM(CASE WHEN CovidTest = 1 THEN 1 ELSE 0 END) AS CovidTestedNumber, EpiWeek FROM [dbo].[FactSari] GROUP BY EpiWeek ) A ORDER BY A.EpiWeek"
+            "file": "sarscov.SARSCOV2PositiveOvertime.sql"
         }
     ]
 }
