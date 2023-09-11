@@ -5,7 +5,7 @@ export default class MainController {
     async getData(req: Request, res: Response) {
         try {
             let dataInstance: any;
-            dataInstance = await mainRepository.readData(req.url);
+            dataInstance = await mainRepository.readPostData(req);
             res.status(200).send(dataInstance);
         }
         catch (err) {
